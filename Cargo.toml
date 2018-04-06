@@ -3,5 +3,5 @@ name = "plugin-launcher"
 version = "0.1.0"
 authors = ["Dmytro Brazhnyk <dmitry@brazhnik.org>"]
 
-[dependencies]
+[dev-dependencies]
 lazy_static = "1.0.0"

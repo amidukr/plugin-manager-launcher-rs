@@ -5,18 +5,15 @@ extern crate lazy_static;
 
 use std::sync::Arc;
 
-
 use plugin_launcher::plugin::api::*;
-
-
 
 struct A{}
 struct B{}
 
-trait TA  {}
-trait TA1 {}
-trait TB  {}
-trait TC  {}
+trait TA  : Sync + Send {}
+trait TA1 : Sync + Send {}
+trait TB  : Sync + Send {}
+trait TC  : Sync + Send {}
 
 impl TA  for A {}
 impl TA1 for A {}
@@ -157,4 +154,14 @@ fn it_manual_inject_test() {
     assert_eq!(2, all_list.len());
 
     assert_eq!(vec!(Arc::new("value-string".to_owned())), str_list);
+}
+
+fn check_type<T: ?Sized>(value: &T) {
+    drop(value);
+}
+
+#[test]
+fn it_thread_safe_auto_trait_test() {
+    check_type::<Sync>(&SharedPluginManager::new());
+    check_type::<Send>(&SharedPluginManager::new());
 }

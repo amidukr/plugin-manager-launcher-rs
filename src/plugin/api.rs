@@ -10,6 +10,8 @@ use std::sync::atomic::AtomicPtr;
 use std::cmp::Eq;
 use std::hash::Hash;
 
+use std::ops::Deref;
+
 //TODO: move to collection lib
 fn map_lazy_get<'a, K: Eq + Hash + Clone, V, F: FnOnce() -> V>(hash_map: &'a mut HashMap<K, V>, key: &K, value_supplier: F) -> &'a mut V {
         if hash_map.contains_key(key) {
@@ -21,22 +23,22 @@ fn map_lazy_get<'a, K: Eq + Hash + Clone, V, F: FnOnce() -> V>(hash_map: &'a mut
         return hash_map.get_mut(key).unwrap();
 }
 
-pub trait LookupKey<T: Any + ?Sized> {
+pub trait LookupKey<T: Any + Sync + Send + ?Sized> {
     fn key_name(&self) -> &Arc<String>;
 }
 
-pub struct LookupKeyValue<T: ?Sized + Any> {
+pub struct LookupKeyValue<T: Sync + Send + ?Sized + Any> {
     phantom_data: PhantomData<AtomicPtr<Box<T>>>,
     key_name: Arc<String>
 }
 
-impl <T: ?Sized + Any> LookupKey<T> for LookupKeyValue<T> {
+impl <T: Sync + Send + ?Sized + Any> LookupKey<T> for LookupKeyValue<T> {
     fn key_name(&self) -> &Arc<String> {
         return &self.key_name;
     }
 }
 
-impl <T: ?Sized + Any> LookupKeyValue<T> {
+impl <T: Sync + Send + ?Sized + Any> LookupKeyValue<T> {
     pub fn from_string(key_name: String) -> LookupKeyValue<T> {
         return LookupKeyValue {
             phantom_data: PhantomData,
@@ -55,33 +57,33 @@ impl <T: ?Sized + Any> LookupKeyValue<T> {
 
 
 pub trait PluginManager {
-    fn add_component(&self, lookup_key: &Arc<String>, component: Arc<Any>);
-    fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<Arc<Any>>>;
+    fn add_component(&self, lookup_key: &Arc<String>, component: PlguinComponent);
+    fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<PlguinComponent>>;
 }
 
-
-
 impl PluginManager {
-    pub fn register_unsized<T: Any + ?Sized>(&self, lookup_key: &LookupKey<T>, component: Arc<T>) {
+    pub fn register_unsized<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKey<T>, component: Arc<T>) {
         self.add_component(lookup_key.key_name(), Arc::new(component));
     }
 
-    pub fn register_trait<T: Any + ?Sized>(&self, lookup_key: &LookupKey<T>, component: Arc<T>) {
+    pub fn register_trait<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKey<T>, component: Arc<T>) {
         self.register_unsized(lookup_key, component)
     }
 
-    pub fn register_sized<T: Any + Sized>(&self, lookup_key: &LookupKey<T>, component: T) {
+    pub fn register_sized<T: Any + Sync + Send + Sized>(&self, lookup_key: &LookupKey<T>, component: T) {
         //self.add_component(lookup_key.key_name(), Arc::new(component) as Arc<T>);
         self.register_unsized(lookup_key, Arc::new(component));
     }
 
 
-    pub fn lookup_components<T: Any + ?Sized>(&self, lookup_key: &LookupKey<T>) -> Vec<Arc<T>> {
+    pub fn lookup_components<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKey<T>) -> Vec<Arc<T>> {
         let components = self.get_components(lookup_key.key_name());
         let mut result: Vec<Arc<T>> = Vec::new();
 
         for component in components.deref() {
-            if let Some(value) = component.downcast_ref::<Arc<T>>() {
+            let any_ref:&Any = component.deref();
+            if let Some(value) = any_ref.downcast_ref::<Arc<T>>() {
+                
                 result.push(value.clone());
             }
         }
@@ -90,9 +92,11 @@ impl PluginManager {
     }
 }
 
+type PlguinComponent = Arc<Any + Send + Sync>;
+
 pub struct SharedPluginManager {
-    components: RwLock<HashMap< Arc<String>, Vec<Arc<Any>> >>,
-    components_arc_cache: RwLock<HashMap< Arc<String>, Arc<Vec<Arc<Any>>> >>
+    components: RwLock<HashMap< Arc<String>, Vec<PlguinComponent> >>,
+    components_arc_cache: RwLock<HashMap< Arc<String>, Arc<Vec<PlguinComponent>> >>
 }
 
 
@@ -105,7 +109,7 @@ impl SharedPluginManager {
         };
     }
 
-    fn add_component(&self, lookup_key: &Arc<String>, component: Arc<Any>) {
+    fn add_component(&self, lookup_key: &Arc<String>, component: PlguinComponent) {
         let plugin_map = &mut *self.components.write().unwrap();
         let cache = &mut *self.components_arc_cache.write().unwrap();
 
@@ -115,7 +119,7 @@ impl SharedPluginManager {
         components.push(component);
     }
 
-    fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<Arc<Any>>> {
+    fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<PlguinComponent>> {
         {
             let cache = &*self.components_arc_cache.read().unwrap();
             if let Some(result) = cache.get(lookup_key) {
@@ -145,8 +149,6 @@ pub struct LocalPluginManager{
     //cache: HashMap<Arc<String>, Arc<Vec<Arc<Any>>> >
 }
 
-use std::ops::Deref;
-
 impl LocalPluginManager {
     pub fn new() -> LocalPluginManager {
         return LocalPluginManager {
@@ -156,11 +158,11 @@ impl LocalPluginManager {
 }
 
 impl PluginManager for LocalPluginManager {
-    fn add_component(&self, lookup_key: &Arc<String>, component: Arc<Any>) {
+    fn add_component(&self, lookup_key: &Arc<String>, component: PlguinComponent) {
         self.shared_manager.add_component(lookup_key, component)
     }
 
-    fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<Arc<Any>>> {
+    fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<PlguinComponent>> {
         self.shared_manager.get_components(lookup_key)
     }
 }
