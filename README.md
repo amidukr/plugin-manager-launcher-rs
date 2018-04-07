@@ -11,19 +11,19 @@ The finite goal for the plugin manager, is to give ability for the end user appl
 
 ## Features:
 - **Compile-Time Configuration** - bootstraiping multi-threaded application by adding core plugins into plugin manager during application start-up [**work in progress**]
-- **Dynamic Libraries Modular load* - be able to load external dynamic libraries with plugins: dll/so/dylib [**work in progress**]
-- **Command Line Arguments** - pareamtrized external libs to load, during application startup [**planned feature**]
+- **Dynamic Libraries Modular load** - be able to load external dynamic libraries as plugins: dll/so/dylib [**work in progress**]
+- **Command Line Arguments** - pareamtrized external dynamic libraries to load, during application startup [**planned feature**]
 - **CLI as Interactive mode** - dynamic loading/unload of plugins in runtime [**planned feature**]
 - **GUI based plugin Loader** - not planned, but should be possible to implement as external plugin [**optional**]
 
 ## Status
 Tasks and Plans:
 1. Core design of component is still under development.
-2. Short-term goal is to split this component into two crates: *plugin-manager-api-rs* and *plugin-manager-launcher-rs*.
+2. Short-term goal is to split this component into two crates: **plugin-manager-api-rs** and **plugin-manager-launcher-rs**.
 3. Write FAQ about ABI Compatibility
 
 ## License: 
-This component will be distributed under two licenses *copyleft(LGPL)* and *permissive(Apache)*.
+This component will be distributed under two licenses **copyleft(LGPL)** and **permissive(Apache)**.
 
 It is under our interest that final product will be used as a part of commercial close-source software, however we are also interesting about sharing improvement for this framework.
 
