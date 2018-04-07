@@ -40,4 +40,4 @@ Plugin Manager core design that Plugin Manager also can be improved using plugin
   - Please do not hesitate to write mail with your suggestion, before creating pull request.
 
 ## Contacts
-Dmytro - amid.ukr@gmail.com
+Dmytro B - amid.ukr@gmail.com
