@@ -21,6 +21,7 @@ The finite goal for the plugin manager, is to give ability for the end user appl
 1. Core design of component is still under development.
 2. Short-term goal is to split this component into two crates: **plugin-manager-api-rs** and **plugin-manager-launcher-rs**.
 3. Write FAQ about ABI Compatibility
+4. Write User Guide document
 
 ## License: 
 This component will be distributed under two licenses **copyleft(LGPL)** and **permissive(Apache)**.
