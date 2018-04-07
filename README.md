@@ -1,4 +1,4 @@
-# plugin-launcher-rs
+# plugin-manager-launcher-rs
 CLI module for Plugin Manager for Rust language
 
 ## Description
