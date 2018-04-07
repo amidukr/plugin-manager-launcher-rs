@@ -22,11 +22,7 @@ impl TB  for B {}
 impl TC for A {}
 impl TC for B {}
 
-trait TD {}
-
 lazy_static! {
-    static ref TD_KEY: LookupKey<TD> = { return LookupKey::from_str("td-key") };
-
     static ref TA_KEY: LookupKey<TA> = { return LookupKey::from_str("ta-key") };
     static ref TB_KEY: LookupKey<TB> = { return LookupKey::from_str("tb-key") };
     static ref TC_KEY: LookupKey<TC> = { return LookupKey::from_str("tc-key") };

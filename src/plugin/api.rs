@@ -32,13 +32,13 @@ pub struct LookupKey<T: Any + ?Sized> {
     key_name: Arc<String>
 }
 
-impl <T: Any + ?Sized + > LookupKeyInterface<T> for LookupKey<T> {
+impl <T: Any + ?Sized> LookupKeyInterface<T> for LookupKey<T> {
     fn key_name(&self) -> &Arc<String> {
         return &self.key_name;
     }
 }
 
-impl <T: ?Sized + Any> LookupKey<T> {
+impl <T: Any + ?Sized> LookupKey<T> {
     pub fn from_string(key_name: String) -> LookupKey<T> {
         return LookupKey {
             phantom_data: PhantomData,
