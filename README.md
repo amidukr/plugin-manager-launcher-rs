@@ -17,7 +17,7 @@ The finite goal for the plugin manager, is to give ability for the end user appl
 - **GUI based plugin Loader** - not planned, but should be possible to implement as external plugin [**optional**]
 
 ## Status
-Tasks and Plans:
+**Tasks and Plans:**
 1. Core design of component is still under development.
 2. Short-term goal is to split this component into two crates: **plugin-manager-api-rs** and **plugin-manager-launcher-rs**.
 3. Write FAQ about ABI Compatibility
