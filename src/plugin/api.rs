@@ -23,31 +23,31 @@ fn map_lazy_get<'a, K: Eq + Hash + Clone, V, F: FnOnce() -> V>(hash_map: &'a mut
         return hash_map.get_mut(key).unwrap();
 }
 
-pub trait LookupKey<T: Any + Sync + Send + ?Sized> {
+pub trait LookupKeyInterface<T: Any + ?Sized> {
     fn key_name(&self) -> &Arc<String>;
 }
 
-pub struct LookupKeyValue<T: Sync + Send + ?Sized + Any> {
+pub struct LookupKey<T: Any + ?Sized> {
     phantom_data: PhantomData<AtomicPtr<Box<T>>>,
     key_name: Arc<String>
 }
 
-impl <T: Sync + Send + ?Sized + Any> LookupKey<T> for LookupKeyValue<T> {
+impl <T: Any + ?Sized + > LookupKeyInterface<T> for LookupKey<T> {
     fn key_name(&self) -> &Arc<String> {
         return &self.key_name;
     }
 }
 
-impl <T: Sync + Send + ?Sized + Any> LookupKeyValue<T> {
-    pub fn from_string(key_name: String) -> LookupKeyValue<T> {
-        return LookupKeyValue {
+impl <T: ?Sized + Any> LookupKey<T> {
+    pub fn from_string(key_name: String) -> LookupKey<T> {
+        return LookupKey {
             phantom_data: PhantomData,
             key_name: Arc::new(key_name)
         };
     }
 
-    pub fn from_str(key_name: &str) -> LookupKeyValue<T> {
-         return LookupKeyValue::from_string(key_name.to_owned());
+    pub fn from_str(key_name: &str) -> LookupKey<T> {
+         return LookupKey::from_string(key_name.to_owned());
     }
 
     pub fn take(&self) -> &Self {
@@ -62,21 +62,21 @@ pub trait PluginManager {
 }
 
 impl PluginManager {
-    pub fn register_unsized<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKey<T>, component: Arc<T>) {
+    pub fn register_unsized<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKeyInterface<T>, component: Arc<T>) {
         self.add_component(lookup_key.key_name(), Arc::new(component));
     }
 
-    pub fn register_trait<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKey<T>, component: Arc<T>) {
+    pub fn register_trait<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKeyInterface<T>, component: Arc<T>) {
         self.register_unsized(lookup_key, component)
     }
 
-    pub fn register_sized<T: Any + Sync + Send + Sized>(&self, lookup_key: &LookupKey<T>, component: T) {
+    pub fn register_sized<T: Any + Sync + Send + Sized>(&self, lookup_key: &LookupKeyInterface<T>, component: T) {
         //self.add_component(lookup_key.key_name(), Arc::new(component) as Arc<T>);
         self.register_unsized(lookup_key, Arc::new(component));
     }
 
 
-    pub fn lookup_components<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKey<T>) -> Vec<Arc<T>> {
+    pub fn lookup_components<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKeyInterface<T>) -> Vec<Arc<T>> {
         let components = self.get_components(lookup_key.key_name());
         let mut result: Vec<Arc<T>> = Vec::new();
 
@@ -131,8 +131,6 @@ impl SharedPluginManager {
 
         map_lazy_get(cache, lookup_key, || {
             let plugin_map = self.components.read().unwrap();
-
-            //let result = Vec::new();
 
             Arc::new(if let Some(result) = plugin_map.get(lookup_key) {
                 result.clone()
