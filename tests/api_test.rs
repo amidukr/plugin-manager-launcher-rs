@@ -5,7 +5,8 @@ extern crate lazy_static;
 
 use std::sync::Arc;
 
-use plugin_launcher::plugin::api::*;
+use plugin_launcher::plugin::context::*;
+use plugin_launcher::plugin::api::context::*;
 
 struct A{}
 struct B{}
