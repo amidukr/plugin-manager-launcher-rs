@@ -39,12 +39,12 @@ impl <T: Any + ?Sized> LookupKey<T> {
 
 
 pub type PlguinComponent = Arc<Any + Send + Sync>;
-pub trait PluginManager {
+pub trait PluginContainer {
     fn add_component(&self, lookup_key: &Arc<String>, component: PlguinComponent);
     fn get_components(&self, lookup_key: &Arc<String>) -> Arc<Vec<PlguinComponent>>;
 }
 
-impl PluginManager {
+impl PluginContainer {
     pub fn register_unsized<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKeyInterface<T>, component: Arc<T>) {
         self.add_component(lookup_key.key_name(), Arc::new(component));
     }
@@ -57,7 +57,6 @@ impl PluginManager {
         //self.add_component(lookup_key.key_name(), Arc::new(component) as Arc<T>);
         self.register_unsized(lookup_key, Arc::new(component));
     }
-
 
     pub fn lookup_components<T: Any + Sync + Send + ?Sized>(&self, lookup_key: &LookupKeyInterface<T>) -> Vec<Arc<T>> {
         let components = self.get_components(lookup_key.key_name());
