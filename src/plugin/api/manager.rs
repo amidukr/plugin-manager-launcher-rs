@@ -50,31 +50,37 @@ pub trait PluginManager : Sync + Send {
 
 
 impl PluginConfiguration {
-    pub fn new(plugins: Vec<PluginAction>) -> PluginConfiguration {
+    pub fn new() -> PluginConfiguration {
         return PluginConfiguration {
-            plugins: plugins
-        }
-    }
-}
-
-impl PluginId {
-    pub fn new(module_name: Arc<String>, plugin_name: Arc<String>) -> PluginId {
-        return PluginId {
-            module_name: module_name,
-            plugin_name: plugin_name
+            plugins: Vec::new()
         }
     }
 
-    pub fn from_str(module_name: &str, plugin_name: &str) -> PluginId {
-        return PluginId::new(
-                Arc::new(module_name.to_owned()),
-                Arc::new(plugin_name.to_owned())
-                );
+    pub fn start_plugin<S: Into<String>>(mut self, module_name: S, plugin_name: S) -> Self {
+        return self.add_plugin_action(PluginAction::new(module_name, plugin_name, PluginActionEnum::Start));
+    }
+
+    pub fn stop_plugin<S: Into<String>>(mut self, module_name: S, plugin_name: S) -> Self {
+        return self.add_plugin_action(PluginAction::new(module_name, plugin_name, PluginActionEnum::Stop));
+    }
+
+    pub fn add_plugin_action(mut self, plguin_action: PluginAction) -> Self {
+        self.plugins.push(plguin_action);
+        return self;
     }
 }
 
 impl PluginAction {
-    pub fn from_str(module_name: &str, plugin_name: &str, action: PluginActionEnum) -> PluginAction {
-        return PluginAction(PluginId::from_str(module_name, plugin_name), action);
+    pub fn new<S: Into<String>>(module_name: S, plugin_name: S, action: PluginActionEnum) -> PluginAction {
+        return PluginAction(PluginId::new(module_name, plugin_name), action);
+    }
+}
+
+impl PluginId {
+    pub fn new<S: Into<String>>(module_name: S, plugin_name: S) -> PluginId {
+        return PluginId {
+            module_name: Arc::new(module_name.into()),
+            plugin_name: Arc::new(plugin_name.into())
+        }
     }
 }

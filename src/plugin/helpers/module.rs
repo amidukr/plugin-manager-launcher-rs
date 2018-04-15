@@ -48,13 +48,13 @@ impl <T: PluginEventsHandler + Sync + Send> Plugin for PluginHelper<T> {
 }
 
 impl <T: PluginEventsHandler + Sync + Send + 'static>  PluginHelper<T> {
-    pub fn from_str(plugin_name: &str, 
-                    plugin_short_description: &str,
-                    events_handler: T) -> Box<Plugin> {
+    pub fn new<S: Into<String>>( plugin_name: S, 
+                plugin_short_description: S,
+                events_handler: T) -> Box<Plugin> {
 
         return Box::new(PluginHelper{
-            plugin_name: Arc::new(plugin_name.to_owned()),
-            plugin_short_description: Arc::new(plugin_short_description.to_owned()),
+            plugin_name: Arc::new(plugin_name.into()),
+            plugin_short_description: Arc::new(plugin_short_description.into()),
             events_handler: events_handler
         });
     }
@@ -82,24 +82,32 @@ impl PluginModule for PluginModuleHelper {
 }
 
 impl PluginModuleHelper {
-    pub fn from_str(module_name: &str, 
-               module_short_description: &str,
-               plugins: Vec<Box<Plugin>>) -> Box<PluginModule> {
+    pub fn new<S: Into<String>>(module_name: S, 
+               module_short_description: S) -> PluginModuleHelper{
+        return PluginModuleHelper{
+            module_name: Arc::new(module_name.into()),
+            module_short_description: Arc::new(module_short_description.into()),
+            plugin_names: Arc::new(Vec::new()),
+            plugin_map: HashMap::new()
+        };
+    }
 
-        let plugin_names: Vec<Arc<String>> = plugins.iter()
-                                                .map(|plugin| plugin.get_plugin_name().clone() )
-                                                .collect();
+    pub fn add_plugin<T: PluginEventsHandler + Sync + Send + 'static, S: Into<String>>(mut self, 
+                    plugin_name: S, 
+                    plugin_short_description: S,
+                    events_handler: T) -> Self{
+        return self.put_plugin(PluginHelper::new(plugin_name, plugin_short_description, events_handler));
+    }
 
-        
-        let plugin_map: HashMap<Arc<String>, Box<Plugin>> = plugins.into_iter()
-                                                               .map(|plugin| (plugin.get_plugin_name().clone(), plugin))
-                                                               .collect();
+    pub fn put_plugin(mut self, plugin: Box<Plugin>) -> Self{
 
-        return Box::new(PluginModuleHelper{
-            module_name: Arc::new(module_name.to_owned()),
-            module_short_description: Arc::new(module_short_description.to_owned()),
-            plugin_names: Arc::new(plugin_names),
-            plugin_map: plugin_map
-        })
+        Arc::make_mut(&mut self.plugin_names).push(plugin.get_plugin_name().clone());
+        self.plugin_map.insert(plugin.get_plugin_name().clone(), plugin);
+
+        return self;
+    }
+
+    pub fn create(self) -> Box<PluginModule>{
+        return Box::new(self);
     }
 }
