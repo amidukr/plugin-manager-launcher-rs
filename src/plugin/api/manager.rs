@@ -7,17 +7,22 @@ pub struct PluginId {
     plugin_name: Arc<String>
 }
 
+#[derive(PartialEq, Copy, Clone)]
 pub enum PluginActionEnum {
     Start,
     Stop
 }
 
-pub struct PluginAction(pub PluginId, pub PluginActionEnum);
-
-pub struct PluginConfiguration {
-    plugins: Vec<PluginAction>
+pub struct PluginAction {
+    plugin_id: PluginId, 
+    action:  PluginActionEnum
 }
 
+pub struct PluginConfiguration {
+    pub plugins: Vec<PluginAction>
+}
+
+#[derive(PartialEq, Copy, Clone)]
 pub enum PluginStatusEnum{
     Active,
     Inactive
@@ -72,7 +77,18 @@ impl PluginConfiguration {
 
 impl PluginAction {
     pub fn new<S: Into<String>>(module_name: S, plugin_name: S, action: PluginActionEnum) -> PluginAction {
-        return PluginAction(PluginId::new(module_name, plugin_name), action);
+        return PluginAction {
+            plugin_id: PluginId::new(module_name, plugin_name), 
+            action: action
+        }
+    }
+
+    pub fn get_plugin_id(&self) -> &PluginId {
+        return &self.plugin_id;
+    }
+
+    pub fn get_action(&self) -> PluginActionEnum {
+        return self.action;
     }
 }
 
