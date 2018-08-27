@@ -37,7 +37,7 @@ impl PluginManager for PluginManagerHelper {
         panic!("Operation Unsupported yet");
     }
 
-    fn reload_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str> {
+    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str> {
         let modules = &mut *self.modules_lock.write().unwrap();
 
         {

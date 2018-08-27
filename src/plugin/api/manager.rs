@@ -50,7 +50,7 @@ pub trait PluginManager : Sync + Send {
 
     fn get_status(&self) -> Arc<PluginConfigurationStatus>;
 
-    fn reload_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str>;
+    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str>;
 }
 
 
