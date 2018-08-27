@@ -1,2 +1,2 @@
-pub mod raii;
+pub mod collections;
 pub mod module;
