@@ -4,9 +4,10 @@ use std::hash::Hash;
 use std::fmt::Display;
 use std::any::Any;
 
- use std::mem::transmute;
+use std::mem::transmute;
 
-pub fn get_hashmap_values<'a, K: Eq + Hash, V>(map: &'a mut HashMap<K, V>, keys: &Vec<K>) -> Result<Vec<&'a mut V>, String>
+pub fn get_hashmap_values<'a,'b, K: 'b + Eq + Hash, V, II>(map: &'a mut HashMap<K, V>, keys: II) -> Result<Vec<&'a mut V>, String>
+where II: IntoIterator<Item=&'b K>
 {
     let mut result = Vec::new();
     let mut duplicated_key_set = HashSet::new();
