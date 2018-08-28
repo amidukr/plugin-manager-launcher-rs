@@ -12,6 +12,7 @@ use plugin_launcher::plugin::manager::PluginManagerFactory;
 use plugin_launcher::plugin::helpers::module::*;
 use plugin_launcher::plugin::api::module::*;
 use plugin_launcher::plugin::api::manager::*;
+use plugin_launcher::plugin::helpers::langutils::{vec_of_str, sort_and_return};
 
 use std::sync::Mutex;
 
@@ -40,6 +41,31 @@ impl PluginEventsHandler for MockPlugin {
     fn stop_plugin(&mut self) {
         self.tx.lock().unwrap().send(format!("{}: plugin stop", self.id)).unwrap();
     }
+}
+
+
+#[test]
+fn it_plugin_configuration_test() {
+    let plugin_configuration = PluginConfiguration::new()
+                                    .start_plugin("mock-module1", "mock-plugin-1")
+                                    .stop_plugin ("mock-module1", "mock-plugin-2")
+
+                                    .start_plugin("mock-module2", "mock-plugin-3")
+                                    .stop_plugin ("mock-module2", "mock-plugin-4")
+                                    .start_plugin("mock-module2", "mock-plugin-5")
+
+                                    .stop_plugin ("mock-module3", "mock-plugin-6");
+
+    assert_eq!(vec_of_str(&["mock-module1", "mock-module2"]),                 sort_and_return(plugin_configuration.get_start_modules()));
+    assert_eq!(vec_of_str(&["mock-module1", "mock-module2", "mock-module3"]), sort_and_return(plugin_configuration.get_stop_modules()));
+
+    assert_eq!(vec_of_str(&["mock-plugin-1"]),                  sort_and_return(plugin_configuration.get_start_plugins("mock-module1")));
+    assert_eq!(vec_of_str(&["mock-plugin-3", "mock-plugin-5"]), sort_and_return(plugin_configuration.get_start_plugins("mock-module2")));
+    assert_eq!(vec_of_str(&[]),                                 sort_and_return(plugin_configuration.get_start_plugins("mock-module3")));
+
+    assert_eq!(vec_of_str(&["mock-plugin-2"]), sort_and_return(plugin_configuration.get_stop_plugins("mock-module1")));
+    assert_eq!(vec_of_str(&["mock-plugin-4"]), sort_and_return(plugin_configuration.get_stop_plugins("mock-module2")));
+    assert_eq!(vec_of_str(&["mock-plugin-6"]), sort_and_return(plugin_configuration.get_stop_plugins("mock-module3")));
 }
 
 #[test]

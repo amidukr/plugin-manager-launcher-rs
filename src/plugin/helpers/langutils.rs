@@ -6,6 +6,8 @@ use std::any::Any;
 
 use std::mem::transmute;
 
+use std::sync::Arc;
+
 pub fn get_hashmap_values<'a,'b, K: 'b + Eq + Hash, V, II>(map: &'a mut HashMap<K, V>, keys: II) -> Result<Vec<&'a mut V>, String>
 where II: IntoIterator<Item=&'b K>
 {
@@ -37,4 +39,19 @@ where II: IntoIterator<Item=&'b K>
     }
 
     return Result::Ok(result);
+}
+
+pub fn new_str<S: Into<Arc<str>>>(s: S) -> Arc<str> {
+    s.into()
+}
+
+pub fn vec_of_str(args: &[&str]) -> Vec<Arc<str>> {
+    args.iter().map(|x| new_str(*x)).collect()
+}
+
+pub fn sort_and_return<T: Ord>(mut vector: Vec<T>) -> Vec<T>
+{
+    vector.sort();
+
+    return vector;
 }

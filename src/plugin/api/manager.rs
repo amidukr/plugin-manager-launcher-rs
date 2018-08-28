@@ -1,6 +1,9 @@
 use std::sync::Arc;
+use std::collections::HashSet;
 
 use plugin::api::module::PluginModule;
+
+use plugin::helpers::langutils::new_str;
 
 pub struct PluginId {
     module_name: Arc<String>,
@@ -72,6 +75,41 @@ impl PluginConfiguration {
     pub fn add_plugin_action(mut self, plguin_action: PluginAction) -> Self {
         self.plugins.push(plguin_action);
         return self;
+    }
+
+    fn get_modules(&self, action: PluginActionEnum) -> Vec<Arc<str>> {
+        let mut result:HashSet<_> = self.plugins.iter()
+           .filter(|x| x.action == action)
+           .map(|x| new_str(x.plugin_id.module_name.as_str()))
+           .collect();
+
+        return result.into_iter().collect();
+    }
+
+    fn get_plugins<S: Into<Arc<str>>>(&self, action: PluginActionEnum, module_name: S) -> Vec<Arc<str>> {
+        let module_name_str = module_name.into();
+        let mut result:HashSet<_> = self.plugins.iter()
+           .filter(|x| x.action == action && x.plugin_id.module_name.as_str() == &*module_name_str )
+           .map(|x| new_str(x.plugin_id.plugin_name.as_str()))
+           .collect();
+
+        return result.into_iter().collect();
+    }
+
+    pub fn get_start_modules(&self) -> Vec<Arc<str>> {
+        self.get_modules(PluginActionEnum::Start)
+    }
+
+    pub fn get_stop_modules(&self) -> Vec<Arc<str>> {
+        self.get_modules(PluginActionEnum::Stop)
+    }
+
+    pub fn get_start_plugins<S: Into<Arc<str>>>(&self, module_name: S) -> Vec<Arc<str>> {
+        self.get_plugins(PluginActionEnum::Start, module_name)
+    }
+
+    pub fn get_stop_plugins<S: Into<Arc<str>>>(&self, module_name: S) -> Vec<Arc<str>> {
+        self.get_plugins(PluginActionEnum::Stop, module_name)
     }
 }
 
