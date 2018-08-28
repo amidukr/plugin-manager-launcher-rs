@@ -1,3 +1,4 @@
 pub mod container;
-pub mod module;
+pub mod modules;
+pub mod plugin;
 pub mod manager;

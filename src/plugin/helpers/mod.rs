@@ -1,2 +1,2 @@
 pub mod langutils;
-pub mod module;
+pub mod plugin;

@@ -2,7 +2,8 @@ use std::sync::Arc;
 use std::collections::HashMap;
 
 
-use plugin::api::module::*;
+use plugin::api::modules::*;
+use plugin::api::plugin::*;
 use plugin::api::container::*;
 
 pub trait PluginEventsHandler {
