@@ -6,8 +6,8 @@ use plugin::api::module::PluginModule;
 use plugin::helpers::langutils::new_str;
 
 pub struct PluginId {
-    module_name: Arc<String>,
-    plugin_name: Arc<String>
+    module_name: Arc<str>,
+    plugin_name: Arc<str>
 }
 
 #[derive(PartialEq, Copy, Clone)]
@@ -32,15 +32,15 @@ pub enum PluginStatusEnum{
 }
 
 pub struct PluginMetaInformation {
-    plugin_name: Arc<String>,
-    short_description: Arc<String>,
+    plugin_name: Arc<str>,
+    short_description: Arc<str>,
     status: PluginStatusEnum
 }
 
 pub struct ModulesMetaInformation {
     plugings: Vec<PluginMetaInformation>,
-    short_description: Arc<String>,
-    library_file_path: Arc<String>
+    short_description: Arc<str>,
+    library_file_path: Arc<str>
 }
 
 pub struct PluginConfigurationStatus {
@@ -48,7 +48,7 @@ pub struct PluginConfigurationStatus {
 }
 
 pub trait PluginManager : Sync + Send {
-    fn add_external_module(&self, library_file_path: &Arc<String>);
+    fn add_external_module(&self, library_file_path: &Arc<str>);
     fn add_module(&self, module: Box<PluginModule>);
 
     fn get_status(&self) -> Arc<PluginConfigurationStatus>;
@@ -64,11 +64,11 @@ impl PluginConfiguration {
         }
     }
 
-    pub fn start_plugin<S: Into<String>>(mut self, module_name: S, plugin_name: S) -> Self {
+    pub fn start_plugin<S: Into<Arc<str>>>(mut self, module_name: S, plugin_name: S) -> Self {
         return self.add_plugin_action(PluginAction::new(module_name, plugin_name, PluginActionEnum::Start));
     }
 
-    pub fn stop_plugin<S: Into<String>>(mut self, module_name: S, plugin_name: S) -> Self {
+    pub fn stop_plugin<S: Into<Arc<str>>>(mut self, module_name: S, plugin_name: S) -> Self {
         return self.add_plugin_action(PluginAction::new(module_name, plugin_name, PluginActionEnum::Stop));
     }
 
@@ -80,7 +80,7 @@ impl PluginConfiguration {
     fn get_modules(&self, action: PluginActionEnum) -> Vec<Arc<str>> {
         let mut result:HashSet<_> = self.plugins.iter()
            .filter(|x| x.action == action)
-           .map(|x| new_str(x.plugin_id.module_name.as_str()))
+           .map(|x| x.plugin_id.module_name.clone() )
            .collect();
 
         return result.into_iter().collect();
@@ -89,8 +89,8 @@ impl PluginConfiguration {
     fn get_plugins<S: Into<Arc<str>>>(&self, action: PluginActionEnum, module_name: S) -> Vec<Arc<str>> {
         let module_name_str = module_name.into();
         let mut result:HashSet<_> = self.plugins.iter()
-           .filter(|x| x.action == action && x.plugin_id.module_name.as_str() == &*module_name_str )
-           .map(|x| new_str(x.plugin_id.plugin_name.as_str()))
+           .filter(|x| x.action == action && x.plugin_id.module_name == module_name_str )
+           .map(|x| x.plugin_id.plugin_name.clone() )
            .collect();
 
         return result.into_iter().collect();
@@ -114,7 +114,7 @@ impl PluginConfiguration {
 }
 
 impl PluginAction {
-    pub fn new<S: Into<String>>(module_name: S, plugin_name: S, action: PluginActionEnum) -> PluginAction {
+    pub fn new<S: Into<Arc<str>>>(module_name: S, plugin_name: S, action: PluginActionEnum) -> PluginAction {
         return PluginAction {
             plugin_id: PluginId::new(module_name, plugin_name), 
             action: action
@@ -131,10 +131,10 @@ impl PluginAction {
 }
 
 impl PluginId {
-    pub fn new<S: Into<String>>(module_name: S, plugin_name: S) -> PluginId {
+    pub fn new<S: Into<Arc<str>>>(module_name: S, plugin_name: S) -> PluginId {
         return PluginId {
-            module_name: Arc::new(module_name.into()),
-            plugin_name: Arc::new(plugin_name.into())
+            module_name: module_name.into(),
+            plugin_name: plugin_name.into()
         }
     }
 }

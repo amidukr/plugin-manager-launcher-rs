@@ -12,7 +12,7 @@ use plugin_launcher::plugin::manager::PluginManagerFactory;
 use plugin_launcher::plugin::helpers::module::*;
 use plugin_launcher::plugin::api::module::*;
 use plugin_launcher::plugin::api::manager::*;
-use plugin_launcher::plugin::helpers::langutils::{vec_of_str, sort_and_return};
+use plugin_launcher::plugin::helpers::langutils::{vec_of_str, sort_and_return, new_str};
 
 use std::sync::Mutex;
 
@@ -180,9 +180,9 @@ fn it_fail_test() {
 }
 
 #[test]
-fn it_unsupported_operations() {
+fn it_unsupported_operations_not_unit_tested_yet() {
     let plugin_manager: Arc<PluginManager> = PluginManagerFactory::new();
 
-    plugin_manager.add_external_module(&Arc::new("test".to_owned()));
+    plugin_manager.add_external_module(&new_str("test"));
     plugin_manager.get_status();
 }

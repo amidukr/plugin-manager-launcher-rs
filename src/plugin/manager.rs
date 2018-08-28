@@ -14,7 +14,7 @@ struct PluginStatusInfo<'a> {
 }
 
 struct PluginModulesContainer {
-    modules: HashMap<Arc<String>, Box<PluginModule>>    
+    modules: HashMap<Arc<str>, Box<PluginModule>>    
 }
 
 struct PluginManagerHelper {
@@ -23,7 +23,7 @@ struct PluginManagerHelper {
 }
 
 impl PluginManager for PluginManagerHelper {
-    fn add_external_module(&self, library_file_path: &Arc<String>) {
+    fn add_external_module(&self, library_file_path: &Arc<str>) {
         panic!("Operation Unsupported yet");
     }
 
