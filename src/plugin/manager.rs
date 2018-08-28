@@ -14,24 +14,32 @@ use plugin::data::modules::*;
 
 pub struct PluginManagerEngine
 {
-    plugin_module: PluginManagerModulesApi,
-
     modules_data: PluginManagerModulesData
 }
 
-impl PluginManager for PluginManagerEngine {
-    fn get_plugin_modules(&self) -> &PluginManagerModules {
-        return &self.plugin_module;
+impl PluginManager for Arc<PluginManagerEngine>
+{
+    fn get_plugin_manager(&self) -> Arc<PluginManager>
+    {
+        return Arc::new(self.clone());
+    }
+
+    fn get_plugin_modules(&self) -> Arc<PluginManagerModules> 
+    {
+        return Arc::new(self.clone());
     }
 }
 
 impl PluginManagerEngine 
 {
-    pub fn new() -> Arc<PluginManager> 
+    pub fn new() -> Arc<PluginManager>
+    {
+        return PluginManagerEngine::new_engine().get_plugin_manager();
+    }
+
+    fn new_engine() -> Arc<PluginManagerEngine>
     {
         return Arc::new(PluginManagerEngine {
-            plugin_module: PluginManagerModulesApi::new(),
-
             modules_data: PluginManagerModulesData::new()
         });
     }

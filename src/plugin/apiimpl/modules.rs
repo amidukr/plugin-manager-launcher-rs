@@ -1,21 +1,11 @@
 use std::sync::Arc;
 
+use plugin::manager::*;
+
 use plugin::api::plugin::*;
 use plugin::api::modules::*;
 
-pub struct PluginManagerModulesApi 
-{
-
-}
-
-impl PluginManagerModulesApi {
-    pub fn new() -> PluginManagerModulesApi 
-    {
-        return PluginManagerModulesApi{};
-    }
-}
-
-impl PluginManagerModules for PluginManagerModulesApi
+impl PluginManagerModules for Arc<PluginManagerEngine> 
 {
     fn add_external_module(&self, library_file_path: &Arc<str>) {
         panic!("Operation Unsupported yet");
