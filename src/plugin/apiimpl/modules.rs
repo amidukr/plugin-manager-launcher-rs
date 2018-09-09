@@ -4,6 +4,7 @@ use plugin::manager::*;
 
 use plugin::api::plugin::*;
 use plugin::api::modules::*;
+use plugin::utils::modules::*;
 
 impl PluginManagerModules for Arc<PluginManagerEngine> 
 {
@@ -20,6 +21,34 @@ impl PluginManagerModules for Arc<PluginManagerEngine>
     }
 
     fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str> {
-        panic!("Operation Unsupported yet");
+        
+        let plugin_manager_data: &mut PluginManagerData = &mut self.write_lock();
+
+        let modules = &mut plugin_manager_data.modules_data;
+        let status  = &mut plugin_manager_data.status_data;
+        
+        {
+            let plugins_to_stop = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Stop);
+
+            for plugin_to_stop in plugins_to_stop {
+                plugin_to_stop.stop_plugin();
+                plugin_to_stop.unregister_components(self.get_plugin_container());
+                
+                status.set_plugin_status(plugin_to_stop, PluginStatusEnum::Inactive)
+            }
+        }
+
+        {
+            let plugins_to_start = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Start);
+
+            for plugin_to_start in plugins_to_start {
+                plugin_to_start.register_components(self.get_plugin_container());
+                plugin_to_start.start_plugin();
+
+                status.set_plugin_status(plugin_to_start, PluginStatusEnum::Active)
+            }
+        }
+        
+        return Result::Ok(());
     }
 }

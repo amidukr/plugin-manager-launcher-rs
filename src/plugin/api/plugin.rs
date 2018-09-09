@@ -6,6 +6,8 @@ pub trait Plugin: Sync + Send {
     fn get_plugin_short_description(&self) -> &Arc<str>;
 
     fn register_components(&mut self, plugin_container: &PluginContainer);
+    fn unregister_components(&mut self, plugin_container: &PluginContainer);
+
     fn start_plugin(&mut self);
     fn stop_plugin(&mut self);
 }

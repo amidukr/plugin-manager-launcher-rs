@@ -8,6 +8,7 @@ use plugin::api::container::*;
 
 pub trait PluginEventsHandler {
     fn register_components(&mut self, plugin_container: &PluginContainer);
+    fn unregister_components(&mut self, plugin_container: &PluginContainer);
     fn start_plugin(&mut self);
     fn stop_plugin(&mut self);
 }
@@ -37,6 +38,10 @@ impl <T: PluginEventsHandler + Sync + Send> Plugin for PluginHelper<T> {
     
     fn register_components(&mut self, plugin_container: &PluginContainer) {
         self.events_handler.register_components(plugin_container);
+    }
+
+    fn unregister_components(&mut self, plugin_container: &PluginContainer) {
+        self.events_handler.unregister_components(plugin_container);
     }
 
     fn start_plugin(&mut self) {

@@ -40,6 +40,10 @@ impl PluginEventsHandler for MockPlugin {
         self.tx.lock().unwrap().send(format!("{}: plugin register components", self.id)).unwrap();
     }
 
+    fn unregister_components(&mut self, plugin_container: &PluginContainer) {
+        self.tx.lock().unwrap().send(format!("{}: plugin unregister components", self.id)).unwrap();
+    }
+
     fn start_plugin(&mut self) {
         self.tx.lock().unwrap().send(format!("{}: plugin start", self.id)).unwrap();
     }
