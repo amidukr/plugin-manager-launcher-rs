@@ -9,6 +9,7 @@ impl PluginModulesUtils {
         modules: &'a mut PluginManagerModulesData, 
         configuration: &PluginConfiguration, 
         action: PluginActionEnum) -> Vec<&'a mut Plugin>{
+            
         panic!("Not supported");
     }
 }

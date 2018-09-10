@@ -10,14 +10,11 @@ use plugin::api::modules::*;
 use plugin::data::modules::*;
 use plugin::data::status::*;
 
-pub struct PluginManagerData{
-    pub modules_data: PluginManagerModulesData,
-    pub status_data: PluginManagerStatusData
-}
-
 pub struct PluginManagerEngine
 {
-    locked_data: RwLock<PluginManagerData>,
+    modules_data: RwLock<PluginManagerModulesData>,
+    status_data:  RwLock<PluginManagerStatusData>,
+
     plugin_container: SharedPluginContainer
 }
 
@@ -44,25 +41,21 @@ impl PluginManagerEngine
     fn new_engine() -> Arc<PluginManagerEngine>
     {
         return Arc::new(PluginManagerEngine {
-            locked_data: RwLock::new(PluginManagerData::new()),
+            modules_data: RwLock::new(PluginManagerModulesData::new()),
+            status_data:  RwLock::new(PluginManagerStatusData::new()),
             plugin_container: SharedPluginContainer::new() //TODO: renamed to components container
         });
     }
 
-    pub fn write_lock(&self) -> RwLockWriteGuard<PluginManagerData> {
-        return self.locked_data.write().unwrap();
+    pub fn modules_write_lock(&self) -> RwLockWriteGuard<PluginManagerModulesData> {
+        return self.modules_data.write().unwrap();
+    }
+
+    pub fn status_write_lock(&self) -> RwLockWriteGuard<PluginManagerStatusData> {
+        return self.status_data.write().unwrap();
     }
 
     pub fn get_plugin_container(&self) -> &PluginContainer {
         return &self.plugin_container;
-    }
-}
-
-impl PluginManagerData {
-    pub fn new() -> PluginManagerData {
-        return PluginManagerData {
-            modules_data: PluginManagerModulesData::new(),
-            status_data: PluginManagerStatusData::new()
-        }
     }
 }

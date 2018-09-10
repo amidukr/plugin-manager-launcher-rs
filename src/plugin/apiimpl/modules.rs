@@ -21,11 +21,9 @@ impl PluginManagerModules for Arc<PluginManagerEngine>
     }
 
     fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str> {
-        
-        let plugin_manager_data: &mut PluginManagerData = &mut self.write_lock();
 
-        let modules = &mut plugin_manager_data.modules_data;
-        let status  = &mut plugin_manager_data.status_data;
+        let ref mut modules = self.modules_write_lock();
+        let ref mut status  = self.status_write_lock();
         
         {
             let plugins_to_stop = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Stop);
