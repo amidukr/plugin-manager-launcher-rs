@@ -1,10 +1,12 @@
 use std::sync::Arc;
 use std::collections::HashSet;
 
+use plugin::api::error::PluginManagerError;
 use plugin::api::plugin::PluginModule;
 
 use plugin::helpers::langutils::new_str;
 
+#[derive(Debug, PartialEq)]
 pub struct PluginId {
     module_name: Arc<str>,
     plugin_name: Arc<str>
@@ -53,7 +55,7 @@ pub trait PluginManagerModules : Sync + Send {
 
     fn get_status(&self) -> Arc<PluginConfigurationStatus>;
 
-    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str>;
+    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), PluginManagerError>;
 }
 
 

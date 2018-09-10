@@ -13,4 +13,8 @@ impl PluginManagerModulesData {
             modules: HashMap::new()
         };
     }
+
+    pub fn add_module(&mut self, module: Box<PluginModule>) {
+        panic!("Not implemented yet");
+    }
 }

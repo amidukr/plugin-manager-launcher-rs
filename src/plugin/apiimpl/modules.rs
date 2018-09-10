@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use plugin::manager::*;
 
+use plugin::api::error::PluginManagerError;
 use plugin::api::plugin::*;
 use plugin::api::modules::*;
 use plugin::utils::modules::*;
@@ -20,13 +21,13 @@ impl PluginManagerModules for Arc<PluginManagerEngine>
         panic!("Operation Unsupported yet");
     }
 
-    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), &str> {
+    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), PluginManagerError> {
 
         let ref mut modules = self.modules_write_lock();
         let ref mut status  = self.status_write_lock();
         
         {
-            let plugins_to_stop = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Stop);
+            let plugins_to_stop = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Stop)?;
 
             for plugin_to_stop in plugins_to_stop {
                 plugin_to_stop.stop_plugin();
@@ -37,7 +38,7 @@ impl PluginManagerModules for Arc<PluginManagerEngine>
         }
 
         {
-            let plugins_to_start = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Start);
+            let plugins_to_start = PluginModulesUtils::get_plugins_for_configuration(modules, configuration, PluginActionEnum::Start)?;
 
             for plugin_to_start in plugins_to_start {
                 plugin_to_start.register_components(self.get_plugin_container());

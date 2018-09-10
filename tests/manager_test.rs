@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use plugin_launcher::plugin::manager::PluginManagerEngine;
 
 use plugin_launcher::plugin::api::container::PluginContainer;
+use plugin_launcher::plugin::api::error::PluginManagerError;
 use plugin_launcher::plugin::api::plugin::*;
 use plugin_launcher::plugin::api::modules::*;
 use plugin_launcher::plugin::api::manager::*;
@@ -189,7 +190,7 @@ fn it_fail_test() {
 
     let result = plugin_modules.apply_configuration(&plugin_configuration);
 
-    assert_eq!(Err("Module 'wrong-module-name' not found"), result);
+    assert_eq!(Err(PluginManagerError::ModuleNotFound(vec![new_str("wrong-module-name")])), result);
     assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 }
 
