@@ -68,9 +68,6 @@ fn it_get_plugins_for_configuration_test() {
                                     .start_plugin("mock-module-2", "mock-plugin-5")
                                     .start_plugin("mock-module-6", "mock-plugin-6");
 
-    PluginModulesUtils::get_plugins_for_configuration(&mut modules, &plugin_configuration, PluginActionEnum::Start).unwrap();
-    PluginModulesUtils::get_plugins_for_configuration(&mut modules, &plugin_configuration, PluginActionEnum::Stop).unwrap();
-
     panic!("Assert not implemented!");
 }
 
@@ -87,18 +84,4 @@ fn it_get_plugins_for_configuration_not_found_test() {
 
     let plugin_configuration_wrong_plugin = PluginConfiguration::new().stop_plugin("mock-module-1", "mock-plugin-3");
     let plugin_configuration_wrong_module = PluginConfiguration::new().stop_plugin("mock-module-2", "mock-plugin-1");
-    
-    {
-        let wrong_plugin_result = PluginModulesUtils::get_plugins_for_configuration(&mut modules, &plugin_configuration_wrong_plugin, PluginActionEnum::Stop);
-        
-        assert_eq!(wrong_plugin_result.err().unwrap(), 
-                    PluginManagerError::PluginNotFound(vec![PluginId::new("mock-module-1", "mock-plugin-3-aaa")]) );
-    }
-
-    {
-        let wrong_module_result = PluginModulesUtils::get_plugins_for_configuration(&mut modules, &plugin_configuration_wrong_module, PluginActionEnum::Stop);
-
-        assert_eq!(wrong_module_result.err().unwrap(), 
-                    PluginManagerError::ModuleNotFound(vec![new_str("mock-module-2-aaa")]) );
-    }
 }

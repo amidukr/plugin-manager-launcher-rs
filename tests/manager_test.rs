@@ -31,7 +31,7 @@ struct MockPlugin {
 fn create_mock_plugin_module(tx: Sender<String>) -> Box<PluginModule>{
     return PluginModuleHelper::new("mock-module", "Mock module for unit testing")
         .add_plugin("mock-plugin-1", "Mock plugin 1", MockPlugin{id: "mock-plugin-1", tx: Mutex::new(tx.clone())})
-        .add_plugin("mock-plugin-1", "Mock plugin 1", MockPlugin{id: "mock-plugin-1", tx: Mutex::new(tx.clone())})
+        .add_plugin("mock-plugin-2", "Mock plugin 2", MockPlugin{id: "mock-plugin-2", tx: Mutex::new(tx.clone())})
         .create();
 }
 
@@ -92,10 +92,11 @@ fn it_start_plugin_test() {
     let plugin_configuration = PluginConfiguration::new()
                                     .start_plugin("mock-module", "mock-plugin-1");
 
-    plugin_modules.apply_configuration(&plugin_configuration).expect("Can't reload plugin configuration");
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
 
     assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 }
 
 #[test]
@@ -110,12 +111,13 @@ fn it_start_two_plugins_test() {
                                     .start_plugin("mock-module", "mock-plugin-1")
                                     .start_plugin("mock-module", "mock-plugin-2");
 
-    plugin_modules.apply_configuration(&plugin_configuration).expect("Can't reload plugin configuration");
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
 
     assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
     assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 }
 
 #[test]
@@ -131,18 +133,51 @@ fn it_start_plugin_later_test() {
     let plugin_configuration = PluginConfiguration::new()
                                     .start_plugin("mock-module", "mock-plugin-1");
 
-    plugin_modules.apply_configuration(&plugin_configuration).expect("Can't reload plugin configuration");
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
 
     assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 
     let plugin_configuration = PluginConfiguration::new()
                                     .start_plugin("mock-module", "mock-plugin-2");
 
-    plugin_modules.apply_configuration(&plugin_configuration).expect("Can't reload plugin configuration");
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
     
     assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
+}
+
+#[test]
+fn it_start_second_after_first_stoped_test() {
+    let (tx, rx) = mpsc::channel();
+
+    let plugin_modules = PluginManagerEngine::new().get_plugin_modules();
+
+    let mock_plugin_module: Box<PluginModule> = create_mock_plugin_module(tx);
+
+    plugin_modules.add_module(mock_plugin_module);
+
+    let plugin_configuration = PluginConfiguration::new()
+                                    .start_plugin("mock-module", "mock-plugin-1");
+
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
+
+    assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
+    assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
+
+    let plugin_configuration = PluginConfiguration::new()
+                                    .stop_plugin("mock-module", "mock-plugin-1")
+                                    .start_plugin("mock-module", "mock-plugin-2");
+
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
+    
+    assert_eq!("mock-plugin-1: plugin stop", rx.recv().unwrap());
+    assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
+    assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 }
 
 #[test]
@@ -158,24 +193,26 @@ fn it_reload_plugin_test() {
     let plugin_configuration = PluginConfiguration::new()
                                     .start_plugin("mock-module", "mock-plugin-1");
 
-    plugin_modules.apply_configuration(&plugin_configuration).expect("Can't reload plugin configuration");
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
 
     assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 
     let plugin_configuration = PluginConfiguration::new()
                                     .stop_plugin("mock-module", "mock-plugin-1")
-                                    .start_plugin("mock-module", "mock-plugin-2");
+                                    .start_plugin("mock-module", "mock-plugin-1");
 
-    plugin_modules.apply_configuration(&plugin_configuration).expect("Can't reload plugin configuration");
+    assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
     
     assert_eq!("mock-plugin-1: plugin stop", rx.recv().unwrap());
-    assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
-    assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
+    assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
+    assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 }
 
 #[test]
-fn it_fail_test() {
+fn it_wrong_module_name_test() {
     let (tx, rx) = mpsc::channel();
 
     let plugin_modules = PluginManagerEngine::new().get_plugin_modules();
@@ -190,7 +227,58 @@ fn it_fail_test() {
 
     let result = plugin_modules.apply_configuration(&plugin_configuration);
 
-    assert_eq!(Err(PluginManagerError::ModuleNotFound(vec![new_str("wrong-module-name")])), result);
+    assert_eq!(vec![PluginManagerError::ModuleNotFound(new_str("wrong-module-name"))], *result.get_errors());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
+}
+
+#[test]
+fn it_warn_not_started() {
+    let (tx, rx) = mpsc::channel();
+
+    let plugin_modules = PluginManagerEngine::new().get_plugin_modules();
+
+    let mock_plugin_module: Box<PluginModule> = create_mock_plugin_module(tx);
+
+    plugin_modules.add_module(mock_plugin_module);
+
+    let plugin_configuration = PluginConfiguration::new()
+                                    .stop_plugin("mock-module", "mock-plugin-1")
+                                    .start_plugin("mock-module", "mock-plugin-2");
+
+    let result = plugin_modules.apply_configuration(&plugin_configuration);
+
+    assert_eq!(vec![PluginManagerError::PluginNotStarted(PluginId::new("mock-module", "mock-plugin-1"))], *result.get_warnings());
+    assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
+    assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
+}
+
+#[test]
+fn it_warn_not_stopped() {
+    let (tx, rx) = mpsc::channel();
+
+    let plugin_modules = PluginManagerEngine::new().get_plugin_modules();
+
+    let mock_plugin_module: Box<PluginModule> = create_mock_plugin_module(tx);
+
+    plugin_modules.add_module(mock_plugin_module);
+
+    
+
+    assert_eq!(true, plugin_modules.apply_configuration(&PluginConfiguration::new()
+                                                        .start_plugin("mock-module", "mock-plugin-1")).is_no_alerts());
+
+    assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
+    assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
+    assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
+
+    let result = plugin_modules.apply_configuration(&PluginConfiguration::new()
+                                                        .start_plugin("mock-module", "mock-plugin-1")
+                                                        .start_plugin("mock-module", "mock-plugin-2"));
+
+    assert_eq!(vec![PluginManagerError::PluginAlreadyStarted(PluginId::new("mock-module", "mock-plugin-1"))], *result.get_warnings());
+    assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
+    assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
     assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
 }
 

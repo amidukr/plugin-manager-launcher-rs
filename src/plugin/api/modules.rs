@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::collections::HashSet;
 
 use plugin::api::error::PluginManagerError;
+use plugin::api::error::ErrorLog;
 use plugin::api::plugin::PluginModule;
 
 use plugin::helpers::langutils::new_str;
@@ -55,7 +56,7 @@ pub trait PluginManagerModules : Sync + Send {
 
     fn get_status(&self) -> Arc<PluginConfigurationStatus>;
 
-    fn apply_configuration(&self, configuration: &PluginConfiguration) -> Result<(), PluginManagerError>;
+    fn apply_configuration(&self, configuration: &PluginConfiguration) -> ErrorLog;
 }
 
 
