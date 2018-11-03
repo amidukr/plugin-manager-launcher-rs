@@ -18,10 +18,18 @@ pub struct ErrorLog {
 
 impl ErrorLog {
     pub fn add_error(&mut self, error: PluginManagerError) {
+        if(self.errors.contains(&error)) {
+            return;
+        }
+
         self.errors.push(error);
     }
 
     pub fn add_warning(&mut self, error: PluginManagerError) {
+        if(self.warnings.contains(&error)) {
+            return;
+        }
+
         self.warnings.push(error);
     }
 

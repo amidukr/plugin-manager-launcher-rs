@@ -8,6 +8,8 @@ use plugin::api::plugin::*;
 use plugin::api::modules::*;
 use plugin::utils::modules::*;
 
+use plugin::data::modules::*;
+
 impl PluginManagerModules for Arc<PluginManagerEngine> 
 {
     fn add_external_module(&self, library_file_path: &Arc<str>) {
@@ -38,7 +40,6 @@ impl PluginManagerModules for Arc<PluginManagerEngine>
         {
             let mut plugins_to_stop = PluginModulesUtils::validate_and_get_plugins_for_action(modules, status, configuration, PluginActionEnum::Stop, &mut error_log);
 
-            
             for &mut (ref plugin_to_stop_id, ref mut plugin_to_stop) in &mut plugins_to_stop {
                 plugin_to_stop.stop_plugin();
             }

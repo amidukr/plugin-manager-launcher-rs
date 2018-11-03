@@ -79,7 +79,14 @@ impl PluginModule for PluginModuleHelper {
         return self.plugin_names.clone();
     }
 
-    fn get_plugin(&mut self, plugin_name: & Arc<str>) -> Option<&mut Plugin> {
+    fn get_plugin(&self, plugin_name: & Arc<str>) -> Option<&Plugin> {
+        return match self.plugin_map.get(plugin_name) {
+            Some(x) => Some(x.as_ref()),
+            None => None,
+        };
+    }
+
+    fn get_plugin_mut(&mut self, plugin_name: & Arc<str>) -> Option<&mut Plugin> {
         return match self.plugin_map.get_mut(plugin_name) {
             Some(x) => Some(x.as_mut()),
             None => None,

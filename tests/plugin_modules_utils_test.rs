@@ -65,23 +65,24 @@ fn create_modules_data() -> PluginManagerModulesData {
 
 #[test]
 fn it_validate_success_test() {
-    let mut modules = PluginManagerModulesData::new();
+    let mut modules = create_modules_data();
     let mut erorr_log = ErrorLog::new();
 
     let plugin_configuration = PluginConfiguration::new()
                                     .start_plugin("mock-module-1", "mock-plugin-1")
-                                    .stop_plugin("mock-module-1", "mock-plugin-1")
-                                    .stop_plugin("mock-module-1", "mock-plugin-2")
-                                    .stop_plugin("mock-module-2", "mock-plugin-3");
+                                    .stop_plugin("mock-module-1",  "mock-plugin-1")
+                                    .stop_plugin("mock-module-1",  "mock-plugin-2")
+                                    .stop_plugin("mock-module-2",  "mock-plugin-3");
 
     PluginModulesUtils::validate_configuration(&mut modules, &plugin_configuration, &mut erorr_log);
 
+    assert_eq!(&Vec::<PluginManagerError>::new(), erorr_log.get_errors());
     assert_eq!(true, erorr_log.is_no_alerts());
 }
 
 #[test]
 fn it_validate_no_module_test() {
-    let mut modules = PluginManagerModulesData::new();
+    let mut modules = create_modules_data();
     let mut erorr_log = ErrorLog::new();
 
     let plugin_configuration = PluginConfiguration::new()
@@ -100,7 +101,7 @@ fn it_validate_no_module_test() {
 
 #[test]
 fn it_validate_no_plugin_test() {
-    let mut modules = PluginManagerModulesData::new();
+    let mut modules = create_modules_data();
     let mut erorr_log = ErrorLog::new();
 
     let plugin_configuration = PluginConfiguration::new()
@@ -119,7 +120,7 @@ fn it_validate_no_plugin_test() {
 
 #[test]
 fn it_validate_no_plugins_and_some_modules_test() {
-    let mut modules = PluginManagerModulesData::new();
+    let mut modules = create_modules_data();
     let mut erorr_log = ErrorLog::new();
 
     let plugin_configuration = PluginConfiguration::new()
@@ -140,7 +141,7 @@ fn it_validate_no_plugins_and_some_modules_test() {
 #[test]
 fn it_get_plugins_for_start_stop() {
     let mut modules = create_modules_data();
-    let status = PluginManagerStatusData::new();
+    let mut status = PluginManagerStatusData::new();
     let mut erorr_log = ErrorLog::new();
 
     let plugin_configuration = PluginConfiguration::new()
@@ -152,27 +153,8 @@ fn it_get_plugins_for_start_stop() {
                                     .start_plugin("mock-module-1", "mock-plugin-2")
                                     .start_plugin("mock-module-2", "mock-plugin-3")
                                     .start_plugin("mock-module-2", "mock-plugin-5")
-                                    .start_plugin("mock-module-6", "mock-plugin-6");
-    {
-        let stop_list:Vec<(&PluginId, &Arc<str>)> = PluginModulesUtils::validate_and_get_plugins_for_action(
-                                                                    &mut modules, 
-                                                                    &status, 
-                                                                    &plugin_configuration, 
-                                                                    PluginActionEnum::Stop, 
-                                                                    &mut erorr_log)
-                                                                .into_iter()
-                                                                .map(|(plugin_id, plugin)| (plugin_id, plugin.get_plugin_name()))
-                                                                .collect();
-                                                                
-        assert_eq!(vec![(&PluginId::new("mock-module-1", "mock-plugin-1"), &new_str("mock-plugin-1")),
-                        (&PluginId::new("mock-module-1", "mock-plugin-2"), &new_str("mock-plugin-2")),
-                        (&PluginId::new("mock-module-2", "mock-plugin-3"), &new_str("mock-plugin-3")),
-                        (&PluginId::new("mock-module-2", "mock-plugin-4"), &new_str("mock-plugin-4"))
-        ], stop_list);
-
-        assert_eq!(true, erorr_log.is_no_alerts());
-    }
-
+                                    .start_plugin("mock-module-3", "mock-plugin-6");
+    
     {
         let start_list:Vec<(&PluginId, &Arc<str>)> = PluginModulesUtils::validate_and_get_plugins_for_action(
                                                                     &mut modules, 
@@ -188,8 +170,33 @@ fn it_get_plugins_for_start_stop() {
                         (&PluginId::new("mock-module-1", "mock-plugin-2"), &new_str("mock-plugin-2")),
                         (&PluginId::new("mock-module-2", "mock-plugin-3"), &new_str("mock-plugin-3")),
                         (&PluginId::new("mock-module-2", "mock-plugin-5"), &new_str("mock-plugin-5")),
-                        (&PluginId::new("mock-module-6", "mock-plugin-6"), &new_str("mock-plugin-6"))
+                        (&PluginId::new("mock-module-3", "mock-plugin-6"), &new_str("mock-plugin-6"))
         ], start_list);      
+
+        assert_eq!(true, erorr_log.is_no_alerts());
+    }
+    
+    {
+        status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-1"), PluginStatusEnum::Active);
+        status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-2"), PluginStatusEnum::Active);
+        status.set_plugin_status(&PluginId::new("mock-module-2", "mock-plugin-3"), PluginStatusEnum::Active);
+        status.set_plugin_status(&PluginId::new("mock-module-2", "mock-plugin-4"), PluginStatusEnum::Active);
+        
+        let stop_list:Vec<(&PluginId, &Arc<str>)> = PluginModulesUtils::validate_and_get_plugins_for_action(
+                                                                    &mut modules, 
+                                                                    &status, 
+                                                                    &plugin_configuration, 
+                                                                    PluginActionEnum::Stop, 
+                                                                    &mut erorr_log)
+                                                                .into_iter()
+                                                                .map(|(plugin_id, plugin)| (plugin_id, plugin.get_plugin_name()))
+                                                                .collect();
+                                                                
+        assert_eq!(vec![(&PluginId::new("mock-module-1", "mock-plugin-1"), &new_str("mock-plugin-1")),
+                        (&PluginId::new("mock-module-1", "mock-plugin-2"), &new_str("mock-plugin-2")),
+                        (&PluginId::new("mock-module-2", "mock-plugin-3"), &new_str("mock-plugin-3")),
+                        (&PluginId::new("mock-module-2", "mock-plugin-4"), &new_str("mock-plugin-4"))
+        ], stop_list);
 
         assert_eq!(true, erorr_log.is_no_alerts());
     }
@@ -211,7 +218,7 @@ fn it_get_plugins_start_warnings() {
                                     .start_plugin("mock-module-1", "mock-plugin-2")
                                     .start_plugin("mock-module-2", "mock-plugin-3")
                                     .start_plugin("mock-module-2", "mock-plugin-5")
-                                    .start_plugin("mock-module-6", "mock-plugin-6");
+                                    .start_plugin("mock-module-3", "mock-plugin-6");
     {
         status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-1"), PluginStatusEnum::Inactive);
         status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-2"), PluginStatusEnum::Active);
@@ -228,13 +235,13 @@ fn it_get_plugins_start_warnings() {
                                                                 .collect();
                                                                 
         assert_eq!(vec![(&PluginId::new("mock-module-1", "mock-plugin-1"), &new_str("mock-plugin-1")),
-                        (&PluginId::new("mock-module-2", "mock-plugin-4"), &new_str("mock-plugin-5")),
-                        (&PluginId::new("mock-module-6", "mock-plugin-6"), &new_str("mock-plugin-6"))
+                        (&PluginId::new("mock-module-2", "mock-plugin-5"), &new_str("mock-plugin-5")),
+                        (&PluginId::new("mock-module-3", "mock-plugin-6"), &new_str("mock-plugin-6"))
         ], stop_list);
 
         assert_eq!(vec![PluginManagerError::PluginAlreadyStarted(PluginId::new("mock-module-1", "mock-plugin-2")),
                         PluginManagerError::PluginAlreadyStarted(PluginId::new("mock-module-2", "mock-plugin-3"))
-        ], *erorr_log.get_errors());
+        ], *erorr_log.get_warnings());
 
         assert_eq!(true, erorr_log.is_completed());
     }
@@ -255,7 +262,7 @@ fn it_get_plugins_stop_warnings() {
                                     .start_plugin("mock-module-1", "mock-plugin-2")
                                     .start_plugin("mock-module-2", "mock-plugin-3")
                                     .start_plugin("mock-module-2", "mock-plugin-5")
-                                    .start_plugin("mock-module-6", "mock-plugin-6");
+                                    .start_plugin("mock-module-3", "mock-plugin-6");
     {
         status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-1"), PluginStatusEnum::Inactive);
         status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-2"), PluginStatusEnum::Active);
@@ -277,8 +284,63 @@ fn it_get_plugins_stop_warnings() {
 
         assert_eq!(vec![PluginManagerError::PluginNotStarted(PluginId::new("mock-module-1", "mock-plugin-1")),
                         PluginManagerError::PluginNotStarted(PluginId::new("mock-module-2", "mock-plugin-4"))
-        ], *erorr_log.get_errors());
+        ], *erorr_log.get_warnings());
 
         assert_eq!(true, erorr_log.is_completed());
+    }
+}
+
+#[test]
+fn it_test_no_duplicated_mut_ref() {
+    let mut modules = create_modules_data();
+    let mut status = PluginManagerStatusData::new();
+    let mut erorr_log = ErrorLog::new();
+
+    let plugin_configuration = PluginConfiguration::new()
+                                    .stop_plugin("mock-module-1", "mock-plugin-1")
+                                    .stop_plugin("mock-module-1", "mock-plugin-2")
+                                    .stop_plugin("mock-module-1", "mock-plugin-1")
+                                    .start_plugin("mock-module-2", "mock-plugin-3")
+                                    .start_plugin("mock-module-2", "mock-plugin-5")
+                                    .start_plugin("mock-module-2", "mock-plugin-3");
+
+    {
+        let stop_list:Vec<(&PluginId, &Arc<str>)> = PluginModulesUtils::validate_and_get_plugins_for_action(
+                                                                    &mut modules, 
+                                                                    &status, 
+                                                                    &plugin_configuration, 
+                                                                    PluginActionEnum::Start, 
+                                                                    &mut erorr_log)
+                                                                .into_iter()
+                                                                .map(|(plugin_id, plugin)| (plugin_id, plugin.get_plugin_name()))
+                                                                .collect();
+                                                                
+        assert_eq!(vec![(&PluginId::new("mock-module-2", "mock-plugin-3"), &new_str("mock-plugin-3")),
+                        (&PluginId::new("mock-module-2", "mock-plugin-5"), &new_str("mock-plugin-5"))
+        ], stop_list);
+
+        assert_eq!(true, erorr_log.is_no_alerts());
+    }
+
+    {
+        status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-1"), PluginStatusEnum::Active);
+        status.set_plugin_status(&PluginId::new("mock-module-1", "mock-plugin-2"), PluginStatusEnum::Active);
+        
+
+        let stop_list:Vec<(&PluginId, &Arc<str>)> = PluginModulesUtils::validate_and_get_plugins_for_action(
+                                                                    &mut modules, 
+                                                                    &status, 
+                                                                    &plugin_configuration, 
+                                                                    PluginActionEnum::Stop, 
+                                                                    &mut erorr_log)
+                                                                .into_iter()
+                                                                .map(|(plugin_id, plugin)| (plugin_id, plugin.get_plugin_name()))
+                                                                .collect();
+                                                                
+        assert_eq!(vec![(&PluginId::new("mock-module-1", "mock-plugin-1"), &new_str("mock-plugin-1")),
+                        (&PluginId::new("mock-module-1", "mock-plugin-2"), &new_str("mock-plugin-2"))
+        ], stop_list);
+
+        assert_eq!(true, erorr_log.is_no_alerts());
     }
 }

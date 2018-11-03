@@ -7,7 +7,7 @@ use plugin::api::plugin::PluginModule;
 
 use plugin::helpers::langutils::new_str;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct PluginId {
     module_name: Arc<str>,
     plugin_name: Arc<str>
@@ -28,7 +28,7 @@ pub struct PluginConfiguration {
     pub plugins: Vec<PluginAction>
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PluginStatusEnum{
     Active,
     Inactive
@@ -89,7 +89,20 @@ impl PluginConfiguration {
         return result.into_iter().collect();
     }
 
-    fn get_plugins<S: Into<Arc<str>>>(&self, action: PluginActionEnum, module_name: S) -> Vec<Arc<str>> {
+    pub fn get_plugin_actions(&self) -> &Vec<PluginAction>
+    {
+        return &self.plugins;
+    }
+
+    pub fn get_list_of_plugin_id_for_action(&self, action_enum: PluginActionEnum) -> Vec<&PluginId>
+    {
+        return self.plugins.iter()
+        .filter(|x| x.action == action_enum)
+        .map(|x| x.get_plugin_id())
+        .collect();
+    }
+
+    fn get_module_plugins<S: Into<Arc<str>>>(&self, action: PluginActionEnum, module_name: S) -> Vec<Arc<str>> {
         let module_name_str = module_name.into();
         let mut result:HashSet<_> = self.plugins.iter()
            .filter(|x| x.action == action && x.plugin_id.module_name == module_name_str )
@@ -108,11 +121,11 @@ impl PluginConfiguration {
     }
 
     pub fn get_start_plugins<S: Into<Arc<str>>>(&self, module_name: S) -> Vec<Arc<str>> {
-        self.get_plugins(PluginActionEnum::Start, module_name)
+        self.get_module_plugins(PluginActionEnum::Start, module_name)
     }
 
     pub fn get_stop_plugins<S: Into<Arc<str>>>(&self, module_name: S) -> Vec<Arc<str>> {
-        self.get_plugins(PluginActionEnum::Stop, module_name)
+        self.get_module_plugins(PluginActionEnum::Stop, module_name)
     }
 }
 
@@ -139,5 +152,15 @@ impl PluginId {
             module_name: module_name.into(),
             plugin_name: plugin_name.into()
         }
+    }
+
+    pub fn get_module_name(&self) -> &Arc<str>
+    {
+        return &self.module_name;
+    }
+
+    pub fn get_plugin_name(&self) -> &Arc<str>
+    {
+        return &self.plugin_name;
     }
 }

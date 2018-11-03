@@ -17,5 +17,6 @@ pub trait PluginModule: Sync + Send {
     fn get_module_short_description(&self) -> &Arc<str>;
 
     fn get_plugins_names(&self) -> Arc<Vec<Arc<str>>>;
-    fn get_plugin(&mut self, plugin_name: &Arc<str>) -> Option<&mut Plugin>;
+    fn get_plugin(&self, plugin_name: &Arc<str>) -> Option<&Plugin>;
+    fn get_plugin_mut(&mut self, plugin_name: &Arc<str>) -> Option<&mut Plugin>;
 }
