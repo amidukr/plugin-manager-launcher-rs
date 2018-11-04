@@ -17,7 +17,9 @@ impl PluginManagerModules for Arc<PluginManagerEngine>
     }
 
     fn add_module(&self, module: Box<PluginModule>) {
-        panic!("Operation Unsupported yet");
+        let ref mut modules = self.modules_write_lock();
+
+        modules.add_module(module);
     }
 
     fn get_status(&self) -> Arc<PluginConfigurationStatus> {

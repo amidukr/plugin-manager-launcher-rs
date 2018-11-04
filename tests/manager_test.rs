@@ -175,6 +175,7 @@ fn it_start_second_after_first_stoped_test() {
     assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
     
     assert_eq!("mock-plugin-1: plugin stop", rx.recv().unwrap());
+    assert_eq!("mock-plugin-1: plugin unregister components", rx.recv().unwrap());
     assert_eq!("mock-plugin-2: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-2: plugin start", rx.recv().unwrap());
     assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
@@ -204,8 +205,9 @@ fn it_reload_plugin_test() {
                                     .start_plugin("mock-module", "mock-plugin-1");
 
     assert_eq!(true, plugin_modules.apply_configuration(&plugin_configuration).is_no_alerts());
-    
+
     assert_eq!("mock-plugin-1: plugin stop", rx.recv().unwrap());
+    assert_eq!("mock-plugin-1: plugin unregister components", rx.recv().unwrap());
     assert_eq!("mock-plugin-1: plugin register components", rx.recv().unwrap());
     assert_eq!("mock-plugin-1: plugin start", rx.recv().unwrap());
     assert_eq!(Err(TryRecvError::Empty), rx.try_recv());

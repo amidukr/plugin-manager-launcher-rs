@@ -41,7 +41,8 @@ pub struct PluginMetaInformation {
 }
 
 pub struct ModulesMetaInformation {
-    plugings: Vec<PluginMetaInformation>,
+    module_name: Arc<str>,
+    plugins: Vec<PluginMetaInformation>,
     short_description: Arc<str>,
     library_file_path: Arc<str>
 }
